@@ -1,5 +1,5 @@
 %==========================================================================
-% nc_def_header0    ---   nc_toolbox
+% nc_def_header    ---   nc_toolbox
 %   Define header of a new NetCDF file
 %
 % input  :

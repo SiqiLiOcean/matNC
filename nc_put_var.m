@@ -17,9 +17,15 @@
 % 2022-04-06
 %
 % Updates:
-%
+% 2023-05-22  Siqi Li  Fixed the bug of one-dimension varaible 
 %==========================================================================
 function nc_put_var(fin, var_name, data, start, count, stride)
+
+
+% Check if the input is one-demension
+if numel(data) == length(data)
+    data = data(:);
+end
 
 % Check if there is an unlimited dimension
 dim_unlimited = [ncinfo(fin, var_name).Dimensions.Unlimited];
