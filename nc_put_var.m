@@ -22,10 +22,10 @@
 function nc_put_var(fin, var_name, data, start, count, stride)
 
 
-% Check if the input is one-demension
-if numel(data) == length(data)
-    data = data(:);
-end
+% % Check if the input is one-demension
+% if numel(data) == length(data)
+%     data = data(:);
+% end
 
 % Check if there is an unlimited dimension
 dim_unlimited = [ncinfo(fin, var_name).Dimensions.Unlimited];
