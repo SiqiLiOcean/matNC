@@ -46,6 +46,10 @@ if ~isempty(Overwrite)
     if exist(fout, 'file') == 2
         delete(fout);
     end
+else
+    if exist(fout, 'file') == 2
+        error('The output exists. Change another fout or use Overwrite.')
+    end
 end
 
 info = ncinfo(fin);
