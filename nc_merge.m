@@ -22,13 +22,7 @@
 function nc_merge(fins, fout, varargin)
 
 varargin = read_varargin(varargin, {'Variable'}, {[]});
-varargin = read_varargin2(varargin, {'Overwrite'}, {[]});
-
-
-
-if isempty(Variable) && isempty(Dimension)
-    error('Neither variable nor dimension settings are set.')
-end
+varargin = read_varargin2(varargin, {'Overwrite'});
 
 % clc
 % clear
@@ -50,9 +44,7 @@ info = ncinfo(fin);
 variables = info.Variables;
 dimensions = info.Dimensions;
 
-
 nvar = length(Variable);
-
 
 for i = 1 : nvar
     j = find(ismember({variables.Name},Variable{i}));
@@ -64,11 +56,8 @@ if isempty(Variable)
     Variable = convertCharsToStrings({variables.Name});
 end
 
-
-
 % Copy global attributes
 nc_copy_att(fin, [], fout, []);
-
 
 % Define dimensions.
 for i = 1 : length(dimensions)
@@ -80,40 +69,44 @@ for i = 1 : length(dimensions)
     end
 end
 
+% Variable
+for j = 1 : length(fins)
 
+    fin = fins{j};
+    disp(['--' fin])
+    for i = 1 : length(Variable)
+        iv = find(ismember({variables.Name},Variable{i}));
+        name = variables(iv).Name;
 
-% Variable not include unlimited dimensions
-for i = 1 : length(Variable)
-
-    iv = find(ismember({variables.Name},Variable{i}));
-    name = variables(iv).Name;
-
-    if ~isempty(variables(iv).Dimensions)
-        vardims = {variables(iv).Dimensions.Name};
-    	unlimited = [variables(iv).Dimensions.Unlimited];
-    else
-        vardims = [];
-    	unlimited = [];
-    end
-    % Define variables
-    nc_def_var(fout, name, variables(iv).Datatype, vardims);
-
-    % Copy attributes
-    nc_copy_att(fin, name, fout, name);
-    
-    % Write data
-    if any(unlimited)
-        disp(['----' name ' (merge)'])
-        data = [];
-        for j = 1 : length(fins)
-            fin = fins{j};
-            tmp = nc_get_var(fin, name);
-            data = cat(length(vardims), data, tmp);
-            nc_put_var(fout, name, data);
+        if ~isempty(variables(iv).Dimensions)
+            vardims = {variables(iv).Dimensions.Name};
+            unlimited = [variables(iv).Dimensions.Unlimited];
+        else
+            vardims = [];
+    	    unlimited = [];
         end
-    else
-        disp(['----' name])
-        nc_copy_data(fin, name, fout, name)
+
+        if j == 1
+            % Define variables
+            nc_def_var(fout, name, variables(iv).Datatype, vardims);
+            % Copy attributes
+            nc_copy_att(fin, name, fout, name);
+
+            % Write data for normal variables
+            if ~any(unlimited)
+                disp(['----' name])
+                nc_copy_data(fin, name, fout, name)
+            end
+        end
+
+        % Write data for vairbales with unlimited dimensions
+        disp(['    ' name ' (merge)'])
+        data = nc_get_var(fin, name);
+        start = zeros(1, length(unlimited));
+        start(unlimited) = j-1;
+        count = [variables(iv).Dimensions.Length];
+        count(unlimited) = 1;
+        nc_put_var(fout, name, data, start, count);
     end
 
 end
